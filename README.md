@@ -384,3 +384,144 @@ export  const Wrapper = styled.div`
 `;
 ```
 
+### Cart Menu Empty Items
+
+```tsx
+// App.tsx
+import { useState } from 'react';
+import { useQuery } from 'react-query';
+// Components
+import Item from './Item/Item';
+import Cart from './Cart/Cart';
+import Drawer from '@material-ui/core/Drawer';
+import LinearProgress from '@material-ui/core/LinearProgress';
+import Grid from '@material-ui/core/Grid';
+import AddShoppingCartIcon from '@material-ui/icons/AddShoppingCart';
+import Badge from '@material-ui/core/Badge';
+// Styles
+import { Wrapper, StyledButton } from './App.styles';
+// Types
+export type CartItemType =  {
+  id: number;
+  category: string;
+  description: string;
+  image: string;
+  price: number;
+  title: string;
+  amount: number;
+};
+
+const getProducts = async (): Promise<CartItemType[]> => 
+  await (await fetch('https://fakestoreapi.com/products')).json();
+
+const App = () => {
+
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartItems, setCartItems] = useState([] as CartItemType[]);
+
+  const { data, isLoading, error } = 
+    useQuery<CartItemType[]>('products', getProducts);
+
+  console.log(data);
+
+  const getTotalItems =  (items: CartItemType[]) => 
+    items.reduce( (acc: number, item) => acc + item.amount, 0);
+
+  const handleAddToCart = (clickedItem: CartItemType) => null;
+
+  const handleRemoveFromCart = () => null;
+
+  if(isLoading) return <LinearProgress />;
+  if(error) return <div>Something went wrong ...</div>;
+  return (
+    <Wrapper>
+      <Drawer anchor='right' open={cartOpen} onClose={ () => setCartOpen(false) }> 
+        <Cart cartItems={cartItems}  
+              addToCart={handleAddToCart} 
+              removeFromCart={handleRemoveFromCart} />
+      </Drawer>
+      <StyledButton onClick={ ( ) => setCartOpen(true)} >
+        <Badge badgeContent={getTotalItems(cartItems)} color='error'>
+          <AddShoppingCartIcon />
+        </Badge>
+      </StyledButton>
+      <Grid container spacing={3}>
+        {data?.map((item: CartItemType) => (
+          <Grid item key={item.id} xs={12} sm={4} >
+            <Item item={item} handleAddToCart={handleAddToCart} /> 
+          </Grid>
+        ))}
+
+      </Grid>
+    </Wrapper>
+  );
+}
+export default App;
+
+```
+
+```tsx
+// Cart/Cart.tsx
+import CartItem from '../CartItem/CartItem';
+// Styles
+import { Wrapper } from './Cart.styles';
+// Types
+import { CartItemType } from '../App';
+
+type Props = {
+  cartItems: CartItemType[];
+  addToCart: (clickedItem: CartItemType) => void;
+  removeFromCart: (id: number) => void;
+
+};
+
+const Cart: React.FC<Props> = ({cartItems, addToCart, removeFromCart}) => {
+  return (
+    <Wrapper>
+      <h2>Your Shopping Cart</h2>
+      {cartItems.length === 0 ? <p>Empty Cart</p> : null }
+      {cartItems.map( (item) => (
+        <CartItem />
+      ))}
+    </Wrapper>
+  );
+};
+
+export default Cart;
+```
+
+```ts
+// Cart/Cart.styles.ts
+import styled from 'styled-components';
+
+export const Wrapper = styled.aside`
+  font-family: Arial, Helvetica, sans-serif;
+  width: 500px;
+  padding: 20px;
+
+`;
+```
+
+```tsx
+// CartItem/CartItem.tsx
+import Button from '@material-ui/core/Button';
+// Types
+import { CartItemType } from '../App';
+// Styles
+import { Wrapper } from './CartItem.styles';
+
+const CartItem: React.FC = () => <div>Cart Item</div>;
+
+export default CartItem;
+
+```
+
+```ts
+// CartItem/CartItem.styles.ts
+import styled from 'styled-components';
+
+export const Wrapper = styled.div`
+  
+`;
+```
+
