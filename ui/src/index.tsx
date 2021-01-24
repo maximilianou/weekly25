@@ -1,3 +1,4 @@
+// index.tsx
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
@@ -7,6 +8,6 @@ const client = new QueryClient();
 ReactDOM.render( 
   <QueryClientProvider client={client} >
     <App />
-  </QueryClientProvider>
-  , document.querySelector('#root'));
+  </QueryClientProvider>, 
+  document.querySelector('#root'));
 
