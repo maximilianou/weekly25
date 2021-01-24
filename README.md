@@ -95,4 +95,129 @@ App.styled.ts
 import styled from 'styled-components';
 export const Wrapper = styled.div``;
 ```
+```
+npm run start
+```
+
+### Item Cart styled-component Typed
+
+App.tsx
+```tsx
+import { useState } from 'react';
+import { useQuery } from 'react-query';
+// Components
+import Item from './Item/Item';
+import Drawer from '@material-ui/core/Drawer';
+import LinearProgress from '@material-ui/core/LinearProgress';
+import Grid from '@material-ui/core/Grid';
+import AddShoppingCartIcon from '@material-ui/icons/AddShoppingCart';
+import Badge from '@material-ui/core/Badge';
+// Styles
+import { Wrapper } from './App.styles';
+// Types
+export type CartItemType =  {
+  id: number;
+  category: string;
+  description: string;
+  image: string;
+  price: number;
+  title: string;
+  amount: number;
+};
+
+const getProducts = async (): Promise<CartItemType[]> => 
+  await (await fetch('https://fakestoreapi.com/products')).json();
+
+const App = () => {
+
+  const { data, isLoading, error } = 
+    useQuery<CartItemType[]>('products', getProducts);
+
+  console.log(data);
+
+  const getTotalItems =  () => null;
+
+  const handleAddToCart = (clickedItem: CartItemType) => null;
+
+  const removeFromCart = () => null;
+
+  if(isLoading) return <LinearProgress />;
+  if(error) return <div>Something went wrong ...</div>;
+
+  return (
+    <Wrapper>
+      <Grid container spacing={3}>
+        {data?.map((item: CartItemType) => (
+          <Grid item key={item.id} xs={12} sm={4} >
+            <Item item={item} handleAddToCart={handleAddToCart} /> 
+          </Grid>
+        ))}
+
+      </Grid>
+    </Wrapper>
+  );
+}
+export default App;
+
+```
+Item.tsx
+```tsx
+import Button from '@material-ui/core/Button';
+// Types
+import { CartItemType } from '../App';
+// Styles
+import { Wrapper } from './Item.styles';
+
+type Props = {
+  item: CartItemType;
+  handleAddToCart: (clickedItem: CartItemType) => void;
+}
+
+const Item: React.FC<Props> = ({item, handleAddToCart}) => (
+  <Wrapper>
+    <img src={item.image} alt={item.title} ></img>
+    <div>
+      <h3>{item.title}</h3>
+      <p>{item.description}</p>
+      <h3>$ {item.price}</h3>
+    </div>
+    <Button onClick={ () => handleAddToCart(item)} > Add to Cart</Button>
+  </Wrapper>
+);
+
+export default Item;
+```
+
+Item.styles.ts
+```ts
+import styled from 'styled-components';
+
+export  const Wrapper = styled.div`
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid lightred;
+  border-radius: 20px;
+  height: 100%;
+
+  button {
+    border-radius: 0 0 20px 20px;
+  }
+
+  img {
+    max-height: 250px;
+    object-fit: cover;
+    border-radius: 20px 20px 0 0;
+
+  }
+
+  div {
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 1rem;
+    height: 100%;
+
+  }
+`;
+```
 
