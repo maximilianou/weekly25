@@ -525,3 +525,218 @@ export const Wrapper = styled.div`
 `;
 ```
 
+### Cart add and remove items
+
+```tsx
+// App.tsx
+import { useState } from 'react';
+import { useQuery } from 'react-query';
+// Components
+import Item from './Item/Item';
+import Cart from './Cart/Cart';
+import Drawer from '@material-ui/core/Drawer';
+import LinearProgress from '@material-ui/core/LinearProgress';
+import Grid from '@material-ui/core/Grid';
+import AddShoppingCartIcon from '@material-ui/icons/AddShoppingCart';
+import Badge from '@material-ui/core/Badge';
+// Styles
+import { Wrapper, StyledButton } from './App.styles';
+// Types
+export type CartItemType =  {
+  id: number;
+  category: string;
+  description: string;
+  image: string;
+  price: number;
+  title: string;
+  amount: number;
+};
+
+const getProducts = async (): Promise<CartItemType[]> => 
+  await (await fetch('https://fakestoreapi.com/products')).json();
+
+const App = () => {
+
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartItems, setCartItems] = useState([] as CartItemType[]);
+
+  const { data, isLoading, error } = 
+    useQuery<CartItemType[]>('products', getProducts);
+
+  console.log(data);
+
+  const getTotalItems =  (items: CartItemType[]) => 
+    items.reduce( (acc: number, item) => acc + item.amount, 0);
+
+  const handleAddToCart = (clickedItem: CartItemType) => {
+    setCartItems( prev => {
+      const isItemInCart = prev.find(item => item.id === clickedItem.id);
+
+      if(isItemInCart){
+        return prev.map( item =>
+          item.id === clickedItem.id
+          ? { ...item, amount: item.amount + 1}
+          : item
+        );
+      }else{
+        return [ ...prev, { ...clickedItem, amount: 1 } ];
+      }
+    });
+  };
+
+  const handleRemoveFromCart = (id: number) => {
+    setCartItems( prev => 
+      prev.reduce( (acc, item) => {
+        if(item.id === id){
+          if( item.amount === 1) return acc;
+          return [ ...acc, { ...item, amount: item.amount - 1 }];
+        }else{
+          return [ ...acc, item];
+        }
+      }, [] as CartItemType[] )
+    );
+  };
+
+  if(isLoading) return <LinearProgress />;
+  if(error) return <div>Something went wrong ...</div>;
+  return (
+    <Wrapper>
+      <Drawer anchor='right' open={cartOpen} onClose={ () => setCartOpen(false) }> 
+        <Cart cartItems={cartItems}  
+              addToCart={handleAddToCart} 
+              removeFromCart={handleRemoveFromCart} />
+      </Drawer>
+      <StyledButton onClick={ ( ) => setCartOpen(true)} >
+        <Badge badgeContent={getTotalItems(cartItems)} color='error'>
+          <AddShoppingCartIcon />
+        </Badge>
+      </StyledButton>
+      <Grid container spacing={3}>
+        {data?.map((item: CartItemType) => (
+          <Grid item key={item.id} xs={12} sm={4} >
+            <Item item={item} handleAddToCart={handleAddToCart} /> 
+          </Grid>
+        ))}
+
+      </Grid>
+    </Wrapper>
+  );
+}
+export default App;
+```
+
+```tsx
+// Cart/Cart.tsx
+import CartItem from '../CartItem/CartItem';
+// Styles
+import { Wrapper } from './Cart.styles';
+// Types
+import { CartItemType } from '../App';
+
+type Props = {
+  cartItems: CartItemType[];
+  addToCart: (clickedItem: CartItemType) => void;
+  removeFromCart: (id: number) => void;
+
+};
+
+const Cart: React.FC<Props> = ({cartItems, addToCart, removeFromCart}) => {
+
+  const calculateTotal = (items: CartItemType[]) =>
+    items.reduce( (acc: number, item: CartItemType) => acc + item.amount * item.price, 0); 
+
+
+  return (
+    <Wrapper>
+      <h2>Your Shopping Cart</h2>
+      {cartItems.length === 0 ? <p>Empty Cart</p> : null }
+      {cartItems.map( (item) => (
+        <CartItem
+          key={item.id}
+          item={item}
+          addToCart={addToCart}
+          removeFromCart={removeFromCart}
+        />
+      ))}
+      <p>Total: $ {calculateTotal(cartItems).toFixed(2)}</p>
+    </Wrapper>
+  );
+};
+
+export default Cart;
+```
+
+```tsx
+// CartItem/CartItem.tsx
+import Button from '@material-ui/core/Button';
+// Types
+import { CartItemType } from '../App';
+//import Item from '../Item/Item';
+// Styles
+import { Wrapper } from './CartItem.styles';
+
+type Props = {
+  item: CartItemType;
+  addToCart: (clickedItem: CartItemType) => void;
+  removeFromCart: (id: number) => void;
+};
+
+const CartItem: React.FC<Props> = ({item, addToCart, removeFromCart}) => (
+  <Wrapper>
+    <div>
+      <h3>{item.title}</h3>
+      <div className='information'>
+        <p>Price: $ {item.price}</p>
+        <p>Total: $ {(item.amount * item.price).toFixed(2)}</p>
+      </div>
+      <div className='buttons'>
+        <Button 
+          size='small'
+          disableElevation
+          variant='contained'
+          onClick={() => removeFromCart(item.id)} 
+          >-</Button>
+        <p>{item.amount}</p>
+        <Button 
+          size='small'
+          disableElevation
+          variant='contained'
+          onClick={() => addToCart(item)}
+        >+</Button>
+      </div>
+    </div>
+    <img src={item.image} alt={item.title}  />
+  </Wrapper>
+);
+
+export default CartItem;
+
+```
+
+```ts
+// CartItem/CartItem.styles.ts
+import styled from 'styled-components';
+
+export const Wrapper = styled.div`
+  display: flex;
+  justify-content: space-between;
+  font-family: Arial, Helvetica, sans-serif;
+  border-bottom: 1px solid grey;
+  padding-bottom: 20px;
+
+  div {
+    flex: 1;
+  }
+
+  .buttons, .information {
+     display: flex;
+     justify-content: space-beetwen;
+  }
+
+  img {
+    max-width: 80px;
+    object-fit: cover;
+    margin-left: 40px; 
+  }
+`;
+```
