@@ -1,4 +1,6 @@
-# weekly25_react_typescript
+# weekly25
+
+[![(https://simpledoers.com/weekly25/)](https://raw.githubusercontent.com/maximilianou/weekly25_react_typescript/main/assets/shoppingcart202101241612.png)](https://simpledoers.com/weekly25/)
 
 ```
 npx create-react-app ui --template typescript
