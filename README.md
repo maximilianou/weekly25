@@ -741,4 +741,4 @@ export const Wrapper = styled.div`
 `;
 ```
 
-![(https://simpledoers.com/weekly25/)](https://raw.githubusercontent.com/maximilianou/weekly25_react_typescript/main/assets/shoppingcart202101241612.png)
+[![(https://simpledoers.com/weekly25/)](https://raw.githubusercontent.com/maximilianou/weekly25_react_typescript/main/assets/shoppingcart202101241612.png)](https://simpledoers.com/weekly25/)
